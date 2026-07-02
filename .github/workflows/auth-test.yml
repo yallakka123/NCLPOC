@@ -25,4 +25,5 @@ jobs:
           sf org login sfdx-url --sfdx-url-file auth.txt --alias dev
 
       - name: Verify Authentication
-        run: sf org display --target-org dev
+        run: |
+          sf org display --target-org dev
