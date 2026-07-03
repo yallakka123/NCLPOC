@@ -10,7 +10,7 @@ on:
 jobs:
   trigger-salesforce-pipeline:
     # Points to your reusable template file path
-    uses: ./.github/workflows/reusable-pipeline.yml 
+    uses: ./.github/workflows/reusable.yml 
     with:
       # Automatically passes the current branch name (dev, int, or main)
       environment: ${{ github.ref_name }} 
