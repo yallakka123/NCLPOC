@@ -1,31 +1,35 @@
-name: Reusable Salesforce Auth
+name: Reusable Salesforce Pipeline
 
 on:
   workflow_call:
     inputs:
       environment:
-        description: 'Target environment (dev|int|main)'
         required: true
         type: string
 
 jobs:
-  authenticate:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 22
 
       - name: Install Salesforce CLI
-        run: |
-          npm install -g @salesforce/cli
+        run: npm install -g @salesforce/cli
 
-      - name: Select Authentication URL
+      - name: Verify Salesforce CLI
+        run: sf --version
+
+      - name: Create Auth File
+        shell: bash
         env:
           SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
           SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
@@ -41,23 +45,8 @@ jobs:
 
       - name: Check Auth File
         run: |
-          echo "Auth file created"
           ls -l auth.txt
           wc -c auth.txt
-
-      - name: Inspect auth.txt
-        run: |
-          echo "--- auth.txt diagnostics ---"
-          echo "size (bytes):"
-          wc -c auth.txt || true
-
-          echo "first 40 chars:"
-          head -c 40 auth.txt || true
-          echo
-
-          echo "last 40 chars:"
-          tail -c 40 auth.txt || true
-          echo
 
       - name: Authenticate Salesforce Org
         run: |
@@ -66,3 +55,26 @@ jobs:
       - name: Verify Authentication
         run: |
           sf org display --target-org target-org
+
+      - name: Install SFDX Git Delta
+        run: |
+          echo y | sf plugins install sfdx-git-delta
+
+      - name: Generate Delta Package
+        run: |
+          mkdir -p delta
+
+          sf sgd source delta \
+            --from HEAD~1 \
+            --to HEAD \
+            --output-dir delta
+
+      - name: Display Delta Files
+        run: |
+          ls -R delta || true
+
+      - name: Upload Delta Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-package
+          path: delta
