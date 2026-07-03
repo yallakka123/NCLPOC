@@ -1,0 +1,37 @@
+name: Reusable Salesforce Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli
+
+      - name: Install SGD
+        run: |
+          echo y | sf plugins install sfdx-git-delta
+
+      - name: Install Scanner
+        run: |
+          sf plugins install @salesforce/sfdx-scanner
+
+      - name: Verify Tools
+        run: |
+          sf --version
+          sf plugins

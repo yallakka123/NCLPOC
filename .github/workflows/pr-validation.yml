@@ -1,0 +1,14 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - int
+      - main
+
+jobs:
+  validate:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      environment: ${{ github.base_ref }}
