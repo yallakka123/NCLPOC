@@ -55,6 +55,14 @@ jobs:
       - name: Verify Authentication
         run: |
           sf org display --target-org target-org
+      - name: Debug Auth Content
+        run: |
+          echo "First 30 chars:"
+          head -c 30 auth.txt
+          echo
+          echo "Last 30 chars:"
+          tail -c 30 auth.txt
+          echo
 
       - name: Install SFDX Git Delta
         run: |
