@@ -1,0 +1,21 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - int
+      - main
+
+jobs:
+  trigger-salesforce-pipeline:
+    # Points to your reusable template file path
+    uses: ./.github/workflows/reusable.yml 
+    with:
+      # Automatically passes the current branch name (dev, int, or main)
+      environment: ${{ github.ref_name }} 
+    secrets:
+      # Explicitly maps your GitHub Secrets to the template inputs
+      SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
+      SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
+      SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
