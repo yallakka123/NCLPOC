@@ -68,3 +68,26 @@ jobs:
         with:
           name: delta-package
           path: delta
+      - name: Select Authentication URL
+        env:
+          SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
+          SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
+          SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            echo "$SF_DEV_AUTH_URL" > auth.txt
+          elif [ "${{ inputs.environment }}" = "int" ]; then
+            echo "$SF_INT_AUTH_URL" > auth.txt
+          elif [ "${{ inputs.environment }}" = "main" ]; then
+            echo "$SF_PROD_AUTH_URL" > auth.txt
+          fi
+
+      - name: Authenticate Salesforce Org
+        run: |
+          sf org login sfdx-url \
+            --sfdx-url-file auth.txt \
+            --alias target-org
+
+      - name: Verify Authentication
+        run: |
+          sf org display --target-org target-org
