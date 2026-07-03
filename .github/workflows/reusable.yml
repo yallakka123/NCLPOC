@@ -11,6 +11,7 @@ on:
 jobs:
   authenticate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,9 +74,7 @@ jobs:
 
       - name: Authenticate Salesforce Org
         run: |
-          sf org login sfdx-url \
-            --sfdx-url-file auth.txt \
-            --alias target-org
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
 
       - name: Verify Authentication
         run: |
