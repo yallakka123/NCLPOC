@@ -20,11 +20,11 @@ jobs:
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli
 
-      - name: Authenticate DEV Org
+      - name: Authenticate INT Org
         run: |
-          echo "${{ secrets.SF_DEV_AUTH_URL }}" > auth.txt
-          sf org login sfdx-url --sfdx-url-file auth.txt --alias dev
+          echo "${{ secrets.SF_INT_AUTH_URL }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias int
 
       - name: Verify Authentication
         run: |
-          sf org display --target-org dev
+          sf org display --target-org int
