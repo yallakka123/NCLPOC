@@ -44,6 +44,24 @@ jobs:
           ls -l auth.txt
           wc -c auth.txt
 
+      - name: Debug SF CLI installation
+        run: |
+          echo "--- Environment info ---"
+          node --version || true
+          npm --version || true
+          echo "--- Global npm packages ---"
+          npm list -g --depth=0 || true
+          echo "--- PATH ---"
+          echo "$PATH"
+          echo "--- which sf ---"
+          which sf || true
+          echo "--- head of sf executable (if present) ---"
+          if which sf >/dev/null 2>&1; then
+            head -n 80 "$(which sf)" || true
+          fi
+          echo "--- sf --version (may fail) ---"
+          sf --version || true
+
       - name: Authenticate Salesforce Org
         run: |
           sf org login sfdx-url \
