@@ -2,29 +2,56 @@ name: Salesforce Authentication Test
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the Environment/Branch Org to validate'
+        required: true
+        default: 'int'
+        type: choice
+        options:
+          - dev
+          - int
+          - prod
 
 jobs:
   authenticate:
     runs-on: ubuntu-latest
-
+    
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli
 
-      - name: Authenticate INT Org
+      - name: Authenticate Salesforce Org
+        env:
+          # Maps the selected input option dynamically to your repository secrets
+          SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
+          SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
+          SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
         run: |
-          echo "${{ secrets.SF_INT_AUTH_URL }}" > auth.txt
-          sf org login sfdx-url --sfdx-url-file auth.txt --alias int
+          # 1. Determine which secret to use based on the input selection
+          if [ "${{ github.event.inputs.environment }}" = "dev" ]; then
+            AUTH_URL="$SF_DEV_AUTH_URL"
+          elif [ "${{ github.event.inputs.environment }}" = "int" ]; then
+            AUTH_URL="$SF_INT_AUTH_URL"
+          elif [ "${{ github.event.inputs.environment }}" = "prod" ]; then
+            AUTH_URL="$SF_PROD_AUTH_URL"
+          fi
+          
+          # 2. Write the URL to a file safely and run the login command
+          echo "$AUTH_URL" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias ${{ github.event.inputs.environment }}
+          
+          # 3. Securely shred/clean up the file immediately after use
+          rm -f auth.txt
 
       - name: Verify Authentication
         run: |
-          sf org display --target-org int
+          sf org display --target-org ${{ github.event.inputs.environment }}
