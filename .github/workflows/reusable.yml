@@ -62,3 +62,9 @@ jobs:
       - name: Display Delta Files
         run: |
           ls -R delta || true
+          
+      - name: Upload Delta Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-package
+          path: delta
