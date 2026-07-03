@@ -44,6 +44,15 @@ jobs:
           ls -l auth.txt
           wc -c auth.txt
 
+      - name: Inspect auth.txt
+        run: |
+          echo "--- auth.txt diagnostics ---"
+          echo "size (bytes):"; wc -c auth.txt || true
+          echo "hexdump (first 8 lines):"; hexdump -C auth.txt | head -n 8 || true
+          echo "base64 (preview 120 chars):"; base64 auth.txt | head -c 120 || true; echo
+          echo "first 40 chars:"; head -c 40 auth.txt || true; echo
+          echo "last 40 chars:"; tail -c 40 auth.txt || true; echo
+
       - name: Debug SF CLI installation
         run: |
           echo "--- Environment info ---"
