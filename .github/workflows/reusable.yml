@@ -15,32 +15,44 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install Salesforce CLI
-        run: npm install -g @salesforce/cli
+        run: |
+          npm install -g @salesforce/cli
 
-      - name: Install SGD
+      - name: Verify Salesforce CLI
+        run: |
+          sf --version
+
+      - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
 
-      - name: Install Scanner
+      - name: Verify SFDX Git Delta
+        run: |
+          sf plugins
+
+      - name: Install Salesforce Code Analyzer
         run: |
           sf plugins install @salesforce/sfdx-scanner
 
-      - name: Verify Tools
+      - name: Verify Scanner
         run: |
-          sf --version
-          sf plugins
+          sf scanner version || true
 
-          - name: Generate Delta Package
+      - name: Generate Delta Package
         run: |
-          mkdir delta
+          mkdir -p delta
 
           sf sgd source delta \
-            --from ${{ vars.LAST_DEV_COMMIT }} \
+            --from HEAD~1 \
             --to HEAD \
             --output-dir delta
+
+      - name: Display Delta Files
+        run: |
+          ls -R delta || true
