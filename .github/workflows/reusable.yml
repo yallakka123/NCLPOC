@@ -11,9 +11,19 @@ on:
 jobs:
   authenticate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install -g @salesforce/cli
 
       - name: Select Authentication URL
         env:
@@ -35,11 +45,23 @@ jobs:
           ls -l auth.txt
           wc -c auth.txt
 
+      - name: Inspect auth.txt
+        run: |
+          echo "--- auth.txt diagnostics ---"
+          echo "size (bytes):"
+          wc -c auth.txt || true
+
+          echo "first 40 chars:"
+          head -c 40 auth.txt || true
+          echo
+
+          echo "last 40 chars:"
+          tail -c 40 auth.txt || true
+          echo
+
       - name: Authenticate Salesforce Org
         run: |
-          sf org login sfdx-url \
-            --sfdx-url-file auth.txt \
-            --alias target-org
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
 
       - name: Verify Authentication
         run: |
