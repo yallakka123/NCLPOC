@@ -2,16 +2,12 @@ name: Salesforce Authentication Test
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Salesforce Environment
-        required: true
-        default: dev
-        type: choice
-        options:
-          - dev
-          - int
-          - prod
+
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+
+    steps:
 
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
@@ -24,28 +20,11 @@ on:
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli
 
-      - name: Select Auth URL
-        shell: bash
+      - name: Authenticate INT Org
         run: |
-          if [ "${{ github.event.inputs.environment }}" = "dev" ]; then
-            echo "${{ secrets.SF_DEV_AUTH_URL }}" > auth.txt
-          elif [ "${{ github.event.inputs.environment }}" = "int" ]; then
-            echo "${{ secrets.SF_INT_AUTH_URL }}" > auth.txt
-          else
-            echo "${{ secrets.SF_PROD_AUTH_URL }}" > auth.txt
-          fi
-
-      - name: Authenticate Org
-        run: |
-          sf org login sfdx-url \
-            --sfdx-url-file auth.txt \
-            --alias target-org
+          echo "${{ secrets.SF_INT_AUTH_URL }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias int
 
       - name: Verify Authentication
         run: |
-          sf org display --target-org target-org
-
-jobs:
-  authenticate:
-    runs-on: ubuntu-latest
-
+          sf org display --target-org int
