@@ -1,14 +1,21 @@
-name: PR Validation
+name: Deploy Pipeline
 
 on:
-  pull_request:
+  push:
     branches:
       - dev
       - int
       - main
 
 jobs:
-  validate:
-    uses: ./.github/workflows/reusable.yml
+  trigger-salesforce-pipeline:
+    # Points to your reusable template file path
+    uses: ./.github/workflows/reusable-pipeline.yml 
     with:
-      environment: ${{ github.base_ref }}
+      # Automatically passes the current branch name (dev, int, or main)
+      environment: ${{ github.ref_name }} 
+    secrets:
+      # Explicitly maps your GitHub Secrets to the template inputs
+      SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
+      SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
+      SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
