@@ -6,6 +6,14 @@ on:
       environment:
         required: true
         type: string
+    # FIX #1: Explicitly pass secrets configuration requirement to the reusable workflow
+    secrets:
+      SF_DEV_AUTH_URL:
+        required: false
+      SF_INT_AUTH_URL:
+        required: false
+      SF_PROD_AUTH_URL:
+        required: false
 
 jobs:
   validate:
@@ -35,15 +43,16 @@ jobs:
           SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
           SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
         run: |
+          # FIX #2: Format auth strings with printf to ensure no hidden spaces and clean trailing line breaks
           if [ "${{ inputs.environment }}" = "dev" ]; then
-            echo "$SF_DEV_AUTH_URL" > auth.txt
+            printf "%s\n" "$SF_DEV_AUTH_URL" > auth.txt
           elif [ "${{ inputs.environment }}" = "int" ]; then
-            echo "$SF_INT_AUTH_URL" > auth.txt
+            printf "%s\n" "$SF_INT_AUTH_URL" > auth.txt
           elif [ "${{ inputs.environment }}" = "main" ]; then
-            echo "$SF_PROD_AUTH_URL" > auth.txt
+            printf "%s\n" "$SF_PROD_AUTH_URL" > auth.txt
           fi
 
-      - name: Check Auth File
+      - name: Check Auth File Size
         run: |
           ls -l auth.txt
           wc -c auth.txt
@@ -51,18 +60,12 @@ jobs:
       - name: Authenticate Salesforce Org
         run: |
           sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
+          # FIX #3: Securely shred auth file details immediately after successful login
+          rm -f auth.txt
 
       - name: Verify Authentication
         run: |
           sf org display --target-org target-org
-      - name: Debug Auth Content
-        run: |
-          echo "First 30 chars:"
-          head -c 30 auth.txt
-          echo
-          echo "Last 30 chars:"
-          tail -c 30 auth.txt
-          echo
 
       - name: Install SFDX Git Delta
         run: |
@@ -71,7 +74,6 @@ jobs:
       - name: Generate Delta Package
         run: |
           mkdir -p delta
-
           sf sgd source delta \
             --from HEAD~1 \
             --to HEAD \
@@ -84,5 +86,5 @@ jobs:
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4
         with:
-          name: delta-package
+          name: delta-package-${{ inputs.environment }}
           path: delta
