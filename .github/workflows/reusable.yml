@@ -35,3 +35,12 @@ jobs:
         run: |
           sf --version
           sf plugins
+
+          - name: Generate Delta Package
+        run: |
+          mkdir delta
+
+          sf sgd source delta \
+            --from ${{ vars.LAST_DEV_COMMIT }} \
+            --to HEAD \
+            --output-dir delta
