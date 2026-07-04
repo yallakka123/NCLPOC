@@ -61,12 +61,13 @@ jobs:
           rm -f auth.txt
 
       - name: Verify Authentication
-      run: |
-        sf org display --target-org target-org
+        run: |
+          sf org display --target-org target-org
 
-    - name: Validate PR Template
-     run: |
-        python scripts/validate-pr.py
+      - name: Validate PR Template
+        run: |
+          python scripts/validate-pr.py
+
       - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
