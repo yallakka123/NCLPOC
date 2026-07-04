@@ -43,7 +43,6 @@ jobs:
           echo "Environment = ${{ inputs.environment }}"
 
       - name: Create Auth File
-        shell: bash
         env:
           SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
           SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
@@ -84,9 +83,7 @@ jobs:
 
       - name: Run Code Analyzer
         run: |
-          sf scanner run \
-            --target force-app \
-            --format table || true
+          sf scanner run --target force-app || true
 
       - name: Generate Delta Package
         run: |
