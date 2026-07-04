@@ -6,7 +6,7 @@ on:
       environment:
         required: true
         type: string
-    # FIX #1: Explicitly pass secrets configuration requirement to the reusable workflow
+
     secrets:
       SF_DEV_AUTH_URL:
         required: false
@@ -31,10 +31,16 @@ jobs:
           node-version: 22
 
       - name: Install Salesforce CLI
-        run: npm install -g @salesforce/cli
+        run: |
+          npm install -g @salesforce/cli
 
       - name: Verify Salesforce CLI
-        run: sf --version
+        run: |
+          sf --version
+
+      - name: Show Environment
+        run: |
+          echo "Environment = ${{ inputs.environment }}"
 
       - name: Create Auth File
         shell: bash
@@ -43,16 +49,15 @@ jobs:
           SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
           SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
         run: |
-          # FIX #2: Format auth strings with printf to ensure no hidden spaces and clean trailing line breaks
           if [ "${{ inputs.environment }}" = "dev" ]; then
-            printf "%s\n" "$SF_DEV_AUTH_URL" > auth.txt
+            echo "$SF_DEV_AUTH_URL" > auth.txt
           elif [ "${{ inputs.environment }}" = "int" ]; then
-            printf "%s\n" "$SF_INT_AUTH_URL" > auth.txt
+            echo "$SF_INT_AUTH_URL" > auth.txt
           elif [ "${{ inputs.environment }}" = "main" ]; then
-            printf "%s\n" "$SF_PROD_AUTH_URL" > auth.txt
+            echo "$SF_PROD_AUTH_URL" > auth.txt
           fi
 
-      - name: Check Auth File Size
+      - name: Check Auth File
         run: |
           ls -l auth.txt
           wc -c auth.txt
@@ -60,25 +65,33 @@ jobs:
       - name: Authenticate Salesforce Org
         run: |
           sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
-          # FIX #3: Securely shred auth file details immediately after successful login
-          rm -f auth.txt
 
       - name: Verify Authentication
         run: |
           sf org display --target-org target-org
 
+      - name: Remove Auth File
+        run: |
+          rm -f auth.txt
+
       - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
+
+      - name: Install Salesforce Code Analyzer
+        run: |
+          sf plugins install @salesforce/sfdx-scanner
+
       - name: Run Code Analyzer
         run: |
           sf scanner run \
             --target force-app \
-            --format table
+            --format table || true
 
       - name: Generate Delta Package
         run: |
           mkdir -p delta
+
           sf sgd source delta \
             --from HEAD~1 \
             --to HEAD \
@@ -87,9 +100,6 @@ jobs:
       - name: Display Delta Files
         run: |
           ls -R delta || true
-          - name: Install Salesforce Code Analyzer
-        run: |
-          sf plugins install @salesforce/sfdx-scanner
 
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4
