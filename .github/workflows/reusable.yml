@@ -6,7 +6,6 @@ on:
       environment:
         required: true
         type: string
-
     secrets:
       SF_DEV_AUTH_URL:
         required: false
@@ -31,16 +30,13 @@ jobs:
           node-version: 22
 
       - name: Install Salesforce CLI
-        run: |
-          npm install -g @salesforce/cli
+        run: npm install -g @salesforce/cli
 
       - name: Verify Salesforce CLI
-        run: |
-          sf --version
+        run: sf --version
 
       - name: Show Environment
-        run: |
-          echo "Environment = ${{ inputs.environment }}"
+        run: echo "Environment = ${{ inputs.environment }}"
 
       - name: Create Auth File
         env:
@@ -62,16 +58,13 @@ jobs:
           wc -c auth.txt
 
       - name: Authenticate Salesforce Org
-        run: |
-          sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
+        run: sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
 
       - name: Verify Authentication
-        run: |
-          sf org display --target-org target-org
+        run: sf org display --target-org target-org
 
       - name: Remove Auth File
-        run: |
-          rm -f auth.txt
+        run: rm -f auth.txt
 
       - name: Install SFDX Git Delta
         run: |
@@ -88,7 +81,6 @@ jobs:
       - name: Generate Delta Package
         run: |
           mkdir -p delta
-
           sf sgd source delta \
             --from HEAD~1 \
             --to HEAD \
