@@ -12,6 +12,7 @@ asdfghjkl;lkjhgfdsa
 rewqwertyuiopoiuytre
 afgoiuyrtyuiop[fghjkkjgjklciuytwertyuiop[asdfghjklzxcvbnm
 asdfghjkl;qwertyuiopasdfghjklqwertyuiopasdfghjklqwertyuio
+asdfghjklwertyuiop
 
 ## Prerequisites
 
