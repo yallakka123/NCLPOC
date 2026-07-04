@@ -70,6 +70,11 @@ jobs:
       - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
+      - name: Run Code Analyzer
+        run: |
+          sf scanner run \
+            --target force-app \
+            --format table
 
       - name: Generate Delta Package
         run: |
@@ -85,12 +90,6 @@ jobs:
           - name: Install Salesforce Code Analyzer
         run: |
           sf plugins install @salesforce/sfdx-scanner
-
-      - name: Run Code Analyzer
-        run: |
-          sf scanner run \
-            --target force-app \
-            --format table
 
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4
