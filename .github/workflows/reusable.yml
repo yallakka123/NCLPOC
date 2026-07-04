@@ -63,6 +63,10 @@ jobs:
       - name: Verify Authentication
         run: |
           sf org display --target-org target-org
+          - name: Validate PR Template
+        run: |
+          echo "Validating PR Template"
+          python scripts/validate-pr.py
 
       - name: Install SFDX Git Delta
         run: |
