@@ -19,3 +19,8 @@ jobs:
       SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
       SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
       SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
+      - name: Validate PR Template
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python scripts/validate-pr.py
