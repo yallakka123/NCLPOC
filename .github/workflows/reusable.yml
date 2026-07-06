@@ -86,7 +86,15 @@ jobs:
       - name: Generate Rollback Package
         run: |
           bash scripts/rollback.sh
-      # comments belwo lines no Apex class are testing       
+
+          
+      - name: Upload Rollback Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-package-${{ inputs.environment }}
+          path: rollback
+
+  # comments belwo lines no Apex class are testing       
      # - name: Extract Test Classes
       #   run: |
       #     python scripts/extract-tests.py > tests.txt
