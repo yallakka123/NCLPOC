@@ -89,6 +89,22 @@ jobs:
             --from HEAD~1 \
             --to HEAD \
             --output-dir delta
+      - name: Extract Test Classes
+        run: |
+          python scripts/extract-tests.py > tests.txt
+
+      - name: Display Test Classes
+        run: |
+          cat tests.txt
+
+      - name: Run Apex Tests
+        run: |
+          TESTS=$(cat tests.txt)
+
+          sf apex run test \
+            --tests "$TESTS" \
+            --code-coverage \
+            --wait 30
             
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
