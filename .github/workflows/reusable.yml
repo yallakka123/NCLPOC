@@ -79,7 +79,13 @@ jobs:
             --from HEAD~1 \
             --to HEAD \
             --output-dir delta
-
+            
+      - name: Deploy Delta to DEV
+        if: github.event_name == 'push'
+        run: |
+          sf project deploy start \
+            --source-dir delta \
+            --target-org target-org
       - name: Display Delta Files
         run: |
           ls -R delta || true
