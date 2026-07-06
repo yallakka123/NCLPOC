@@ -93,12 +93,7 @@ jobs:
             --to HEAD~1 \
             --output-dir rollback
 
-      - name: Upload Delta Package
-        uses: actions/upload-artifact@v4
-        with:
-          name: delta-package-${{ inputs.environment }}
-          path: delta
-
+    
       - name: Upload Rollback Package
         uses: actions/upload-artifact@v4
         with:
