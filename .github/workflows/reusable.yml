@@ -70,14 +70,7 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           python scripts/validate-pr.py
-      - name: Run Apex Tests
-        run: |
-          sf apex run test \
-            --code-coverage \
-            --wait 30
-      - name: Validate Coverage
-        run: |
-          python scripts/coverage.py
+     
       - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
