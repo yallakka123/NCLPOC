@@ -97,6 +97,7 @@ jobs:
         run: |
           cat tests.txt
 
+      
       - name: Run Apex Tests
         run: |
           TESTS=$(cat tests.txt)
@@ -104,7 +105,9 @@ jobs:
           sf apex run test \
             --tests "$TESTS" \
             --code-coverage \
-            --wait 30
+            --wait 30 \
+            --target-org target-org
+
             
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
