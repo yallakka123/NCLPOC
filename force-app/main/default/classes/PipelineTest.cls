@@ -1,1 +1,2 @@
-classes/PipelineTest.cls
+public class PipelineTest {
+}
