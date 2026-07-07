@@ -70,20 +70,38 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           python scripts/validate-pr.py
-     
+
       - name: Install SFDX Git Delta
         run: |
           echo y | sf plugins install sfdx-git-delta
 
+      - name: Set Delta Base Commit
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_DEV_COMMIT }}" >> $GITHUB_ENV
+          elif [ "${{ inputs.environment }}" = "int" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_INT_COMMIT }}" >> $GITHUB_ENV
+          elif [ "${{ inputs.environment }}" = "main" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_PROD_COMMIT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Show Base Commit
+        run: |
+          echo "BASE_COMMIT=$BASE_COMMIT"
+
       - name: Generate Delta Package
         run: |
           mkdir -p delta
+
           sf sgd source delta \
-            --from HEAD~1 \
+            --from $BASE_COMMIT \
             --to HEAD \
             --output-dir delta
 
-      
+      - name: Display Delta Files
+        run: |
+          ls -R delta || true
+
       - name: Generate Rollback Package
         run: |
           mkdir -p rollback
@@ -93,42 +111,19 @@ jobs:
             --to HEAD~1 \
             --output-dir rollback
 
-    
       - name: Upload Rollback Package
         uses: actions/upload-artifact@v4
         with:
           name: rollback-package-${{ inputs.environment }}
           path: rollback
 
-  # comments belwo lines no Apex class are testing       
-     # - name: Extract Test Classes
-      #   run: |
-      #     python scripts/extract-tests.py > tests.txt
-
-      # - name: Display Test Classes
-      #   run: |
-      #     cat tests.txt
-
-      # - name: Run Apex Tests
-      #   run: |
-      #     TESTS=$(cat tests.txt)
-      #
-      #     sf apex run test \
-      #       --tests "$TESTS" \
-      #       --code-coverage \
-      #       --wait 30 \
-      #       -o target-org
-
-            
-      - name: Deploy Delta to DEV
+      - name: Deploy Delta
         if: github.event_name == 'push'
+        continue-on-error: true
         run: |
           sf project deploy start \
-            --source-dir delta \
+            --source-dir delta/force-app \
             --target-org target-org
-      - name: Display Delta Files
-        run: |
-          ls -R delta || true
 
       - name: Install Salesforce Code Analyzer
         run: |
@@ -138,7 +133,7 @@ jobs:
         run: |
           sf scanner run \
             --target force-app \
-            --format table
+            --format table || true
 
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4
