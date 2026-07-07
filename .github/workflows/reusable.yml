@@ -139,11 +139,10 @@ jobs:
 
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
-        continue-on-error: true
         run: |
-          if [ -d "delta/force-app" ]; then
+          if [ -f "delta/package/package.xml" ]; then
             sf project deploy start \
-              --source-dir delta/force-app \
+              --manifest delta/package/package.xml \
               --target-org target-org
           else
             echo "No Salesforce metadata to deploy. Skipping deployment."
