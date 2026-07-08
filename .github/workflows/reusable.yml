@@ -57,7 +57,10 @@ jobs:
 
       - name: Authenticate Salesforce Org
         run: |
-          sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
+          sf org login sfdx-url \
+            --sfdx-url-file auth.txt \
+            --alias target-org
+
           rm -f auth.txt
 
       - name: Verify Authentication
@@ -135,3 +138,45 @@ jobs:
           if [ -f "delta/package/package.xml" ]; then
 
             if [ -s tests.txt ]; then
+
+              TESTS=$(cat tests.txt)
+
+              echo "Running specified tests: $TESTS"
+
+              sf project deploy start \
+                --manifest delta/package/package.xml \
+                --test-level RunSpecifiedTests \
+                --tests "$TESTS" \
+                --target-org target-org
+
+            else
+
+              echo "No Apex test classes found. Deploying without specified tests."
+
+              sf project deploy start \
+                --manifest delta/package/package.xml \
+                --target-org target-org
+
+            fi
+
+          else
+
+            echo "No Salesforce metadata to deploy. Skipping deployment."
+
+          fi
+
+      - name: Install Salesforce Code Analyzer
+        run: |
+          sf plugins install @salesforce/sfdx-scanner
+
+      - name: Run Code Analyzer
+        run: |
+          sf scanner run \
+            --target force-app \
+            --format table || true
+
+      - name: Upload Delta Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-package-${{ inputs.environment }}
+          path: delta
