@@ -132,6 +132,16 @@ jobs:
         run: |
           cat tests.txt || true
 
+      - name: Install Salesforce Code Analyzer
+        run: |
+          sf plugins install @salesforce/sfdx-scanner
+
+      - name: Run Code Analyzer
+        run: |
+          sf scanner run \
+            --target force-app \
+            --format table || true
+
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
         run: |
@@ -164,16 +174,6 @@ jobs:
             echo "No Salesforce metadata to deploy. Skipping deployment."
 
           fi
-
-      - name: Install Salesforce Code Analyzer
-        run: |
-          sf plugins install @salesforce/sfdx-scanner
-
-      - name: Run Code Analyzer
-        run: |
-          sf scanner run \
-            --target force-app \
-            --format table || true
 
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4
