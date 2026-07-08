@@ -121,6 +121,9 @@ jobs:
       - name: Extract Test Classes
         run: |
           python scripts/extract-tests.py
+      - name: Display Test Classes
+       run: |
+        cat tests.txt || true
 
       - name: Run Apex Tests
         run: |
