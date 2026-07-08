@@ -17,7 +17,6 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -92,7 +91,6 @@ jobs:
       - name: Generate Delta Package
         run: |
           mkdir -p delta
-
           sf sgd source delta \
             --from "$BASE_COMMIT" \
             --to HEAD \
@@ -105,7 +103,6 @@ jobs:
       - name: Generate Rollback Package
         run: |
           mkdir -p rollback
-
           sf sgd source delta \
             --from HEAD \
             --to HEAD~1 \
@@ -122,18 +119,18 @@ jobs:
           python scripts/extract-tests.py
 
       - name: Run Apex Tests
-       run: |
-        if [ -f tests.txt ]; then
-        TESTS=$(cat tests.txt)
+        run: |
+          if [ -f tests.txt ]; then
+            TESTS=$(cat tests.txt)
+            sf apex run test \
+              --tests "$TESTS" \
+              --code-coverage \
+              --wait 30 \
+              -o target-org
+          else
+            echo "No Apex classes changed. Skipping tests."
+          fi
 
-        sf apex run test \
-        --tests "$TESTS" \
-        --code-coverage \
-        --wait 30 \
-        -o target-org
-        else
-        echo "No Apex classes changed. Skipping tests."
-        fi
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
         run: |
