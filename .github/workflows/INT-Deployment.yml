@@ -11,6 +11,5 @@ jobs:
     with:
       environment: int
     secrets:
-      SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
       SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
-      SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
+      GH_PAT: ${{ secrets.GH_PAT }}
