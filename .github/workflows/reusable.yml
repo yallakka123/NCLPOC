@@ -13,6 +13,8 @@ on:
         required: false
       SF_PROD_AUTH_URL:
         required: false
+      GH_PAT:
+        required: true
 
 jobs:
   validate:
@@ -175,11 +177,11 @@ jobs:
 
           fi
 
-          - name: Update LAST_DEV_COMMIT
-           if: success() && github.event_name == 'push' && inputs.environment == 'dev'
-           env:
-           GH_TOKEN: ${{ secrets.GH_PAT }}
-          run: |
+      - name: Update LAST_DEV_COMMIT
+        if: success() && github.event_name == 'push' && inputs.environment == 'dev'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
           curl -L \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \
@@ -187,11 +189,11 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/actions/variables/LAST_DEV_COMMIT \
             -d "{\"name\":\"LAST_DEV_COMMIT\",\"value\":\"${{ github.sha }}\"}"
 
-          - name: Update LAST_INT_COMMIT
-          if: success() && github.event_name == 'push' && inputs.environment == 'int'
-           env:
-           GH_TOKEN: ${{ secrets.GH_PAT }}
-          run: |
+      - name: Update LAST_INT_COMMIT
+        if: success() && github.event_name == 'push' && inputs.environment == 'int'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
           curl -L \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \
