@@ -1,11 +1,6 @@
-@IsTest
-private class PipelineTestTest {
+public class PipelineTest {
 
-    @IsTest
-    static void testGetMessage() {
-        System.assertEquals(
-            'Pipeline Test Success',
-            PipelineTest.getMessage()
-        );
+    public static String getMessage() {
+        return 'Pipeline Test Success';
     }
 }
