@@ -1,13 +1,30 @@
-import os
+import xml.etree.ElementTree as ET
 
 tests = []
 
-for root, dirs, files in os.walk("delta"):
-    for file in files:
-        if file.endswith(".cls") and not file.endswith("Test.cls"):
-            class_name = file.replace(".cls", "")
-            tests.append(f"{class_name}Test")
+package_file = "delta/package/package.xml"
 
-if tests:
-    with open("tests.txt", "w") as f:
-        f.write(",".join(tests))
+try:
+    tree = ET.parse(package_file)
+    root = tree.getroot()
+
+    namespace = {
+        "sf": "http://soap.sforce.com/2006/04/metadata"
+    }
+
+    for types in root.findall("sf:types", namespace):
+        name = types.find("sf:name", namespace)
+
+        if name is not None and name.text == "ApexClass":
+            for member in types.findall("sf:members", namespace):
+                class_name = member.text
+
+                if not class_name.endswith("Test"):
+                    tests.append(f"{class_name}Test")
+
+    if tests:
+        with open("tests.txt", "w") as f:
+            f.write(",".join(tests))
+
+except Exception as e:
+    print(f"Error: {e}")
