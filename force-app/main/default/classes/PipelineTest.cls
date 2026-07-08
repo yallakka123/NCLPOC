@@ -1,10 +1,11 @@
-public class PipelineTest {
+@IsTest
+private class PipelineTestTest {
 
-    public static String getMessage() {
-        return 'Pipeline Test Success';
-    }
-
-    public static Integer addNumbers(Integer a, Integer b) {
-        return a + b;
+    @IsTest
+    static void testGetMessage() {
+        System.assertEquals(
+            'Pipeline Test Success',
+            PipelineTest.getMessage()
+        );
     }
 }
