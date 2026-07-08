@@ -117,26 +117,23 @@ jobs:
           name: rollback-package-${{ inputs.environment }}
           path: rollback
 
-      # comments below lines no Apex class are testing
+      - name: Extract Test Classes
+        run: |
+          python scripts/extract-tests.py
 
-      # - name: Extract Test Classes
-      #   run: |
-      #     python scripts/extract-tests.py > tests.txt
+      - name: Run Apex Tests
+       run: |
+        if [ -f tests.txt ]; then
+        TESTS=$(cat tests.txt)
 
-      # - name: Display Test Classes
-      #   run: |
-      #     cat tests.txt
-
-      # - name: Run Apex Tests
-      #   run: |
-      #     TESTS=$(cat tests.txt)
-      #
-      #     sf apex run test \
-      #       --tests "$TESTS" \
-      #       --code-coverage \
-      #       --wait 30 \
-      #       -o target-org
-
+        sf apex run test \
+        --tests "$TESTS" \
+        --code-coverage \
+        --wait 30 \
+        -o target-org
+        else
+        echo "No Apex classes changed. Skipping tests."
+        fi
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
         run: |
