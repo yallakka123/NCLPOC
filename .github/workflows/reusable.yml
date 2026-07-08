@@ -99,6 +99,10 @@ jobs:
       - name: Display Delta Files
         run: |
           ls -R delta || true
+      - name: Debug Delta Files
+        run: |
+          find delta -type f
+
 
       - name: Generate Rollback Package
         run: |
