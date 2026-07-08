@@ -17,6 +17,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -91,6 +92,7 @@ jobs:
       - name: Generate Delta Package
         run: |
           mkdir -p delta
+
           sf sgd source delta \
             --from "$BASE_COMMIT" \
             --to HEAD \
@@ -107,6 +109,7 @@ jobs:
       - name: Generate Rollback Package
         run: |
           mkdir -p rollback
+
           sf sgd source delta \
             --from HEAD \
             --to HEAD~1 \
@@ -126,42 +129,9 @@ jobs:
         run: |
           cat tests.txt || true
 
-      - name: Run Apex Tests
-        run: |
-          if [ -f tests.txt ]; then
-            TESTS=$(cat tests.txt)
-            sf apex run test \
-              --tests "$TESTS" \
-              --code-coverage \
-              --wait 30 \
-              -o target-org
-          else
-            echo "No Apex classes changed. Skipping tests."
-          fi
-
       - name: Deploy Delta to DEV
         if: github.event_name == 'push'
         run: |
           if [ -f "delta/package/package.xml" ]; then
-            sf project deploy start \
-              --manifest delta/package/package.xml \
-              --target-org target-org
-          else
-            echo "No Salesforce metadata to deploy. Skipping deployment."
-          fi
 
-      - name: Install Salesforce Code Analyzer
-        run: |
-          sf plugins install @salesforce/sfdx-scanner
-
-      - name: Run Code Analyzer
-        run: |
-          sf scanner run \
-            --target force-app \
-            --format table || true
-
-      - name: Upload Delta Package
-        uses: actions/upload-artifact@v4
-        with:
-          name: delta-package-${{ inputs.environment }}
-          path: delta
+            if [ -s tests.txt ]; then
