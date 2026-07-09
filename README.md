@@ -10,11 +10,8 @@ asdfghjkl;
 asdfghjkl;
 asdfghjkl;lkjhgfdsa
 rewqwertyuiopoiuytre
-afgoiuyrtyuiop[fghjkkjgjklciuytwertyuiop[asdfghjklzxcvbnm
-asdfghjkl;qwertyuiopasdfghjklqwertyuiopasdfghjklqwertyuio
-testingdevymal
-testing rollbak
-testing last commit
+sdfghjkloiuytreaertyu
+
 ## Prerequisites
 
 Before you start, make sure you have:
