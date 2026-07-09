@@ -13,6 +13,8 @@ on:
         required: false
       SF_PROD_AUTH_URL:
         required: false
+      GH_PAT:
+        required: true
 
 jobs:
   validate:
@@ -57,7 +59,10 @@ jobs:
 
       - name: Authenticate Salesforce Org
         run: |
-          sf org login sfdx-url --sfdx-url-file auth.txt --alias target-org
+          sf org login sfdx-url \
+            --sfdx-url-file auth.txt \
+            --alias target-org
+
           rm -f auth.txt
 
       - name: Verify Authentication
@@ -65,6 +70,9 @@ jobs:
           sf org display --target-org target-org
 
       - name: Validate PR Template
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           python scripts/validate-pr.py
 
@@ -72,17 +80,59 @@ jobs:
         run: |
           echo y | sf plugins install sfdx-git-delta
 
+      - name: Set Delta Base Commit
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_DEV_COMMIT }}" >> $GITHUB_ENV
+          elif [ "${{ inputs.environment }}" = "int" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_INT_COMMIT }}" >> $GITHUB_ENV
+          elif [ "${{ inputs.environment }}" = "main" ]; then
+            echo "BASE_COMMIT=${{ vars.LAST_PROD_COMMIT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Show Base Commit
+        run: |
+          echo "BASE_COMMIT=$BASE_COMMIT"
+
       - name: Generate Delta Package
         run: |
           mkdir -p delta
+
           sf sgd source delta \
-            --from HEAD~1 \
+            --from "$BASE_COMMIT" \
             --to HEAD \
             --output-dir delta
 
       - name: Display Delta Files
         run: |
           ls -R delta || true
+
+      - name: Debug Delta Files
+        run: |
+          find delta -type f
+
+      - name: Generate Rollback Package
+        run: |
+          mkdir -p rollback
+
+          sf sgd source delta \
+            --from HEAD \
+            --to HEAD~1 \
+            --output-dir rollback
+
+      - name: Upload Rollback Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-package-${{ inputs.environment }}
+          path: rollback
+
+      - name: Extract Test Classes
+        run: |
+          python scripts/extract-tests.py
+
+      - name: Display Test Classes
+        run: |
+          cat tests.txt || true
 
       - name: Install Salesforce Code Analyzer
         run: |
@@ -92,7 +142,81 @@ jobs:
         run: |
           sf scanner run \
             --target force-app \
-            --format table
+            --format table || true
+
+      - name: Deploy Delta to DEV
+        if: github.event_name == 'push'
+        run: |
+          if [ -f "delta/package/package.xml" ]; then
+
+            if [ -s tests.txt ]; then
+
+              TESTS=$(cat tests.txt)
+
+              echo "Running specified tests: $TESTS"
+
+              sf project deploy start \
+                --manifest delta/package/package.xml \
+                --test-level RunSpecifiedTests \
+                --tests "$TESTS" \
+                --target-org target-org
+
+            else
+
+              echo "No Apex test classes found. Deploying without specified tests."
+
+              sf project deploy start \
+                --manifest delta/package/package.xml \
+                --target-org target-org
+
+            fi
+
+          else
+
+            echo "No Salesforce metadata to deploy. Skipping deployment."
+
+          fi
+
+      - name: Update LAST_DEV_COMMIT
+        if: success() && github.event_name == 'push' && inputs.environment == 'dev'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          curl -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/actions/variables/LAST_DEV_COMMIT \
+            -d "{\"name\":\"LAST_DEV_COMMIT\",\"value\":\"${{ github.sha }}\"}"
+            
+           echo ""
+           echo "Current SHA:"
+           echo "${{ github.sha }}"
+
+
+      - name: Update LAST_INT_COMMIT
+        if: success() && github.event_name == 'push' && inputs.environment == 'int'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          curl -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/actions/variables/LAST_INT_COMMIT \
+            -d "{\"name\":\"LAST_INT_COMMIT\",\"value\":\"${{ github.sha }}\"}"
+
+      - name: Update LAST_PROD_COMMIT
+        if: success() && github.event_name == 'push' && inputs.environment == 'main'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          curl -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/actions/variables/LAST_PROD_COMMIT \
+            -d "{\"name\":\"LAST_PROD_COMMIT\",\"value\":\"${{ github.sha }}\"}"
 
       - name: Upload Delta Package
         uses: actions/upload-artifact@v4

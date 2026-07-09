@@ -10,9 +10,7 @@ asdfghjkl;
 asdfghjkl;
 asdfghjkl;lkjhgfdsa
 rewqwertyuiopoiuytre
-afgoiuyrtyuiop[fghjkkjgjklciuytwertyuiop[asdfghjklzxcvbnm
-asdfghjkl;qwertyuiopasdfghjklqwertyuiopasdfghjklqwertyuio
-asdfghjklwertyuiop
+sdfghjkloiuytreaertyu
 
 ## Prerequisites
 
