@@ -9,7 +9,7 @@ jobs:
   deploy-dev:
     uses: ./.github/workflows/reusable.yml
     with:
-      environment: dev
+      environment: DEV
     secrets:
       SF_DEV_AUTH_URL: ${{ secrets.SF_DEV_AUTH_URL }}
       GH_PAT: ${{ secrets.GH_PAT }}
