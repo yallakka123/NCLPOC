@@ -9,7 +9,7 @@ jobs:
   deploy-int:
     uses: ./.github/workflows/reusable.yml
     with:
-      environment: int
+      environment: INT
     secrets:
       SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
       GH_PAT: ${{ secrets.GH_PAT }}
