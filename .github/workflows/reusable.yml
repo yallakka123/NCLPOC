@@ -44,11 +44,11 @@ jobs:
           SF_INT_AUTH_URL: ${{ secrets.SF_INT_AUTH_URL }}
           SF_PROD_AUTH_URL: ${{ secrets.SF_PROD_AUTH_URL }}
         run: |
-          if [ "${{ inputs.environment }}" = "dev" ]; then
+          if [ "${{ inputs.environment }}" = "DEV" ]; then
             printf "%s\n" "$SF_DEV_AUTH_URL" > auth.txt
-          elif [ "${{ inputs.environment }}" = "int" ]; then
+          elif [ "${{ inputs.environment }}" = "INT" ]; then
             printf "%s\n" "$SF_INT_AUTH_URL" > auth.txt
-          elif [ "${{ inputs.environment }}" = "main" ]; then
+          elif [ "${{ inputs.environment }}" = "PROD" ]; then
             printf "%s\n" "$SF_PROD_AUTH_URL" > auth.txt
           fi
 
